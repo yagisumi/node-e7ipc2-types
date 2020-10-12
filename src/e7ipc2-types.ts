@@ -44,7 +44,7 @@ export interface Client<T extends CommandsSpec> {
 
 export type Handler<T extends CommandsSpec, Event = unknown, K extends keyof T = keyof T> = (
   event: Event,
-  req: T[K]['opts'] & { [Tag]: K }
+  cmd: T[K]['opts'] & { [Tag]: K }
 ) => Promise<Result<T[K]['ret']>>
 
 export interface Server<T extends CommandsSpec> {

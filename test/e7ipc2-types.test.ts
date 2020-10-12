@@ -1,4 +1,13 @@
-import { CommandMap, Client, OK, ERR, Result, CommandOptions, CommandReturn } from '@/e7ipc2-types'
+import {
+  CommandMap,
+  Client,
+  OK,
+  ERR,
+  Result,
+  CommandOptions,
+  CommandReturn,
+  Server,, Handler
+} from '@/e7ipc2-types'
 import { assertType, expectType } from './assertType'
 
 type ThenArg<T> = T extends PromiseLike<infer U>
@@ -160,5 +169,22 @@ describe('e7ipc2-types', () => {
 
     assertType.assignable<typeof ok_obj1, ThenArg<R3a>>(false)
     assertType.notAssignable<typeof ok_obj1, ThenArg<R3a>>()
+
+    const handler: Handler<Commands> = async (_, cmd) => {
+      if (cmd.type$ === 'com1') {
+        return OK('xxx') // XXX
+      } else if (cmd.type$ === 'com2') {
+        return OK({
+          x: 100,
+        })
+      } else if (cmd.type$ === 'com3') {
+        return OK('test')
+      } else {
+        return ERR('unexpected command')
+      }
+    }
+
+    const server: Server<Commands> = { handle: () => {} } as any
+    server.handle(handler)
   })
 })
