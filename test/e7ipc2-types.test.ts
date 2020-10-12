@@ -48,7 +48,7 @@ describe('e7ipc2-types', () => {
     type R1 = typeof r1
     type R2 = typeof r2
     type R3a = typeof r3a
-    type R4b = typeof r3b
+    type R3b = typeof r3b
 
     const err = ERR('test')
     const ok_num = OK(3)
@@ -72,5 +72,48 @@ describe('e7ipc2-types', () => {
 
     assertType.assignable<typeof ok_str, ThenArg<R1>>(false)
     assertType.notAssignable<typeof ok_str, ThenArg<R1>>()
+
+    expectType<ThenArg<R2>>(err)
+    expectType<ThenArg<R2>>(ok_obj1)
+
+    assertType.equal<R2, Promise<Result<{ x: number }>>>()
+    assertType.notEqual<R2, Promise<Result<{ x: number }>>>(false)
+
+    assertType.equal<R2, Promise<Result<{ x: string }>>>(false)
+    assertType.notEqual<R2, Promise<Result<{ x: string }>>>()
+
+    assertType.assignable<typeof ok_obj1, ThenArg<R2>>()
+    assertType.notAssignable<typeof ok_obj1, ThenArg<R2>>(false)
+
+    assertType.assignable<typeof ok_obj2, ThenArg<R2>>(false)
+    assertType.notAssignable<typeof ok_obj2, ThenArg<R2>>()
+
+    assertType.assignable<typeof ok_num, ThenArg<R2>>(false)
+    assertType.notAssignable<typeof ok_num, ThenArg<R2>>()
+
+    assertType.assignable<typeof err, ThenArg<R2>>()
+    assertType.notAssignable<typeof err, ThenArg<R2>>(false)
+
+    expectType<ThenArg<R3a>>(err)
+    expectType<ThenArg<R3a>>(ok_str)
+    expectType<ThenArg<R3b>>(err)
+    expectType<ThenArg<R3b>>(ok_str)
+
+    assertType.equal<R3a, R3b>()
+    assertType.notEqual<R3a, R3b>(false)
+
+    assertType.equal<R3a, Promise<Result<string>>>()
+    assertType.notEqual<R3a, Promise<Result<string>>>(false)
+    assertType.equal<R3a, Promise<Result<number>>>(false)
+    assertType.notEqual<R3a, Promise<Result<number>>>()
+
+    assertType.assignable<typeof ok_str, ThenArg<R3a>>()
+    assertType.notAssignable<typeof ok_str, ThenArg<R3a>>(false)
+
+    assertType.assignable<typeof err, ThenArg<R3a>>()
+    assertType.notAssignable<typeof err, ThenArg<R3a>>(false)
+
+    assertType.assignable<typeof ok_obj1, ThenArg<R3a>>(false)
+    assertType.notAssignable<typeof ok_obj1, ThenArg<R3a>>()
   })
 })
