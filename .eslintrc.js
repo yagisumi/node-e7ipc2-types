@@ -40,6 +40,12 @@ module.exports = {
             allowNullableBoolean: true,
           },
         ],
+        '@typescript-eslint/no-empty-interface': [
+          'error',
+          {
+            allowSingleExtends: true,
+          },
+        ],
       },
     },
   ],
