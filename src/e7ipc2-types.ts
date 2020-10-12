@@ -4,9 +4,37 @@ import { Serializable, Result } from './result'
 const Tag = 'type$' as const
 type Tag = typeof Tag
 
+type OptsType = Record<string, Serializable | undefined>
+
 type CommandsSpec = {
-  [key: string]: { opts: Record<string, Serializable | undefined>; ret: Serializable }
+  [key: string]: { opts: OptsType; ret: Serializable }
 }
+
+type ValueMap<
+  Opts extends Record<string, Serializable | undefined>,
+  CmdName,
+  KeyOfOpts
+> = KeyOfOpts extends keyof Opts ? Opts[KeyOfOpts] : CmdName
+
+type UnfoldedCommandOptions<
+  T extends CommandsSpec,
+  K extends keyof T,
+  Opts extends OptsType = T[K]['opts']
+> = {
+  [P in keyof Opts | Tag]: ValueMap<Opts, K, P>
+}
+
+type HasUndefined<T, Ret> = T extends undefined ? Ret : never
+type OptionalKeys<T, K extends keyof T = keyof T> = K extends HasUndefined<T[K], K> ? K : never
+type PartiallyPartial<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
+export type CommandOptions<
+  T extends CommandsSpec,
+  K extends keyof T,
+  O = UnfoldedCommandOptions<T, K>
+> = PartiallyPartial<O, OptionalKeys<O>>
+
+export type CommandReturn<T extends CommandsSpec, K extends keyof T> = Promise<Result<T[K]['ret']>>
 
 type CheckOpts<ComKeys extends string, Opts, Ret> = Tag extends keyof Opts
   ? never

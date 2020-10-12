@@ -1,4 +1,4 @@
-import { CommandMap, Client, OK, ERR, Result } from '@/e7ipc2-types'
+import { CommandMap, Client, OK, ERR, Result, CommandOptions, CommandReturn } from '@/e7ipc2-types'
 import { assertType, expectType } from './assertType'
 
 type ThenArg<T> = T extends PromiseLike<infer U>
@@ -40,15 +40,60 @@ describe('e7ipc2-types', () => {
 
     const client: Client<Commands> = { invoke: () => {} } as any
 
-    const r1 = client.invoke({ type$: 'com1', a: 0, b: 'B' })
-    const r2 = client.invoke({ type$: 'com2' })
-    const r3a = client.invoke({ type$: 'com3', a: 0 })
-    const r3b = client.invoke({ type$: 'com3', a: 0, b: 'B' })
+    const opts1 = { type$: 'com1', a: 0, b: 'B' } as const
+    const opts2 = { type$: 'com2' } as const
+    const opts3a = { type$: 'com3', a: 0 } as const
+    const opts3b = { type$: 'com3', a: 0, b: 'B' } as const
+
+    const r1 = client.invoke(opts1)
+    const r2 = client.invoke(opts2)
+    const r3a = client.invoke(opts3a)
+    const r3b = client.invoke(opts3b)
+
+    type OptsCom1 = CommandOptions<Commands, 'com1'>
+    type OptsCom2 = CommandOptions<Commands, 'com2'>
+    type OptsCom3 = CommandOptions<Commands, 'com3'>
+
+    assertType.assignable<typeof opts1, OptsCom1>()
+    assertType.notAssignable<typeof opts1, OptsCom1>(false)
+    assertType.assignable<typeof opts2, OptsCom1>(false)
+    assertType.notAssignable<typeof opts2, OptsCom1>()
+
+    assertType.assignable<typeof opts2, OptsCom2>()
+    assertType.notAssignable<typeof opts2, OptsCom2>(false)
+    assertType.assignable<typeof opts3a, OptsCom2>(false)
+    assertType.notAssignable<typeof opts3a, OptsCom2>()
+
+    assertType.assignable<typeof opts3a, OptsCom3>()
+    assertType.notAssignable<typeof opts3a, OptsCom3>(false)
+    assertType.assignable<typeof opts1, OptsCom3>(false)
+    assertType.notAssignable<typeof opts1, OptsCom3>()
+
+    assertType.assignable<typeof opts3b, OptsCom3>()
+    assertType.notAssignable<typeof opts3b, OptsCom3>(false)
+    assertType.assignable<typeof opts2, OptsCom3>(false)
+    assertType.notAssignable<typeof opts2, OptsCom3>()
 
     type R1 = typeof r1
     type R2 = typeof r2
     type R3a = typeof r3a
     type R3b = typeof r3b
+
+    type CR1 = CommandReturn<Commands, 'com1'>
+    type CR2 = CommandReturn<Commands, 'com2'>
+    type CR3 = CommandReturn<Commands, 'com3'>
+
+    assertType.equal<R1, CR1>()
+    assertType.notEqual<R1, CR1>(false)
+
+    assertType.equal<R2, CR2>()
+    assertType.notEqual<R2, CR2>(false)
+
+    assertType.equal<R3a, CR3>()
+    assertType.notEqual<R3a, CR3>(false)
+
+    assertType.equal<R3b, CR3>()
+    assertType.notEqual<R3b, CR3>(false)
 
     const err = ERR('test')
     const ok_num = OK(3)
