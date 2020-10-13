@@ -10,12 +10,38 @@ function ensureSerializable(obj: unknown) {
   }
 }
 
-type ErrorLike = {
+type MessageTypeError = {
+  type$: 'Message'
+  name: string
+  message: string
+}
+
+type ErrorTypeError = {
+  type$: 'Error'
   name: string
   message: string
   stack?: string
+}
+
+type UnknownTypeError = {
+  type$: 'Unknown'
+  name: string
+  message: string
   value?: Serializable
 }
+
+type ErrorLikeTypeError = {
+  type$: 'ErrorLike'
+  name: string
+  message: string
+}
+
+type ErrorLike = {
+  name: string
+  message: string
+}
+
+type ErrorObj = MessageTypeError | ErrorTypeError | UnknownTypeError | ErrorLikeTypeError
 
 function isErrorLike(obj: any): obj is ErrorLike {
   return (
@@ -28,22 +54,25 @@ function isErrorLike(obj: any): obj is ErrorLike {
   )
 }
 
-export function wrapError(err: unknown): ErrorLike {
+export function wrapError(err: unknown): ErrorObj {
   if (typeof err === 'string') {
     return {
+      type$: 'Message',
       name: 'Error',
       message: err,
     }
   } else if (err instanceof Error) {
     return {
+      type$: 'Error',
       name: err.name,
       message: err.message,
       stack: err.stack,
     }
   } else if (isErrorLike(err)) {
-    return err
+    return { type$: 'ErrorLike', ...err }
   } else {
     return {
+      type$: 'Unknown',
       name: 'Error',
       message: 'unexpected error',
       value: ensureSerializable(err),
@@ -59,7 +88,7 @@ export type OK<T> = {
 
 export type ERR = {
   ok: false
-  error: ErrorLike
+  error: ErrorObj
   value: undefined
 }
 
