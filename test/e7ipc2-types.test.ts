@@ -17,37 +17,39 @@ type ThenArg<T> = T extends PromiseLike<infer U>
   ? V
   : T
 
-describe('e7ipc2-types', () => {
-  test('CommandMap', async () => {
-    type Commands = DefineCommands<{
-      com1: {
-        opts: {
-          a: number
-          b: string
-        }
-        ret: number
-      }
-      com2: {
-        ret: {
-          x: number
-        }
-      }
-      com3: {
-        opts: {
-          a: number
-          b?: string
-        }
-        ret: string
-      }
-      com4: {
-        x: Record<string, unknown>
-        y: number
-      }
-    }>
+type Commands = DefineCommands<{
+  com1: {
+    opts: {
+      a: number
+      b: string
+    }
+    ret: number
+  }
+  com2: {
+    ret: {
+      x: number
+    }
+  }
+  com3: {
+    opts: {
+      a: number
+      b?: string
+    }
+    ret: string
+  }
+  com4: {
+    x: Record<string, unknown>
+    y: number
+  }
+}>
 
+describe('e7ipc2-types', () => {
+  test('DefineCommands', () => {
     assertType.equal<keyof Commands, 'com1' | 'com2' | 'com3'>()
     assertType.notEqual<keyof Commands, 'com1' | 'com2' | 'com3'>(false)
+  })
 
+  test('client.invoke(), options and return types', async () => {
     const client: Client<Commands> = { invoke: () => {} } as any
 
     const opts1 = { cmd$: 'com1', a: 0, b: 'B' } as const
@@ -170,7 +172,9 @@ describe('e7ipc2-types', () => {
 
     assertType.assignable<typeof ok_obj1, ThenArg<R3a>>(false)
     assertType.notAssignable<typeof ok_obj1, ThenArg<R3a>>()
+  })
 
+  test('handlers and server', () => {
     const handlers_ok = defineHandler<Commands>({
       com1: async (_, opts) => {
         opts.a
