@@ -8,13 +8,15 @@ type CommandData = {
   ret: Serializable
 }
 
-type CommandsSpec = Record<string, CommandData>
-
-type ComplementOpts<CmdKey extends string, CmdData> = CmdData extends {
-  opts?: Record<string, Serializable | undefined>
+type LooseCmdData = {
+  opts?: OptsData
   ret: Serializable
 }
-  ? CmdData['opts'] extends Record<string, Serializable | undefined>
+
+type CommandsSpec = Record<string, CommandData>
+
+type ComplementOpts<CmdKey extends string, CmdData> = CmdData extends LooseCmdData
+  ? CmdData['opts'] extends OptsData
     ? { [P in CmdKey]: CmdData }
     : // eslint-disable-next-line @typescript-eslint/ban-types
       { [P in CmdKey]: { opts: {}; ret: CmdData['ret'] } }
@@ -24,28 +26,44 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   ? I
   : never
 
-type LooseCommands<Cmds, CmdName extends keyof Cmds = keyof Cmds> = CmdName extends keyof Cmds &
+type ComplementCmds<Cmds, CmdName extends keyof Cmds = keyof Cmds> = CmdName extends keyof Cmds &
   string
   ? ComplementOpts<CmdName, Cmds[CmdName]>
   : never
 
-export type DefineCommands<Cmds> = UnionToIntersection<LooseCommands<Cmds>>
+export type DefineCommands<Cmds> = UnionToIntersection<ComplementCmds<Cmds>>
+
+// type ComplementOpts2<CmdData> = CmdData extends LooseCmdData
+//   ? CmdData['opts'] extends OptsData
+//     ? CmdData
+//     : // eslint-disable-next-line @typescript-eslint/ban-types
+//       { opts: {}; ret: CmdData['ret'] }
+//   : never
+
+// type ComplementCmds2<Cmds> = { [P in keyof Cmds]: ComplementOpts2<Cmds[P]> }
+
+// type IsNever<V, R> = V[] extends never[] ? R : never // never is empty UNION!
+
+// type ValidCmdKeys<Cmds, K extends keyof Cmds = keyof Cmds> = K extends IsNever<Cmds[K], K>
+//   ? never
+//   : K
+
+// export type DefineCommands2<Cmds, FixedCmds = ComplementCmds2<Cmds>> = Pick<
+//   FixedCmds,
+//   ValidCmdKeys<FixedCmds>
+// >
 
 export type CommandOptions<
   Cmds extends CommandsSpec,
   CmdName extends keyof Cmds = keyof Cmds
 > = Cmds[CmdName]['opts'] & { cmd$: CmdName }
 
-type CommandOptionsUnion<
-  Cmds extends CommandsSpec,
-  CmdName extends keyof Cmds = keyof Cmds
-> = CmdName extends keyof Cmds ? CommandOptions<Cmds, CmdName> : never
+type CommandOptionsUnion<Cmds extends CommandsSpec> = {
+  [P in keyof Cmds]: CommandOptions<Cmds, P>
+}[keyof Cmds]
 
-type GetCommandRet<Cmds extends CommandsSpec, CmdName extends keyof Cmds> = Promise<
-  Result<Cmds[CmdName]['ret']>
->
 export type CommandReturn<Cmds extends CommandsSpec, CmdName extends keyof Cmds = keyof Cmds> = {
-  [P in CmdName]: GetCommandRet<Cmds, CmdName>
+  [P in CmdName]: Promise<Result<Cmds[CmdName]['ret']>>
 }[CmdName]
 
 type GetHandler<Cmds extends CommandsSpec, CmdName extends keyof Cmds, Event = unknown> = (
