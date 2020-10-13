@@ -1,5 +1,5 @@
 import {
-  CommandMap,
+  DefineCommands,
   Client,
   OK,
   ERR,
@@ -7,10 +7,7 @@ import {
   CommandOptions,
   CommandReturn,
   Server,
-  Handler,
-  Handler2,
-  HandlerOne,
-  HandlerMap,
+  defineHandler,
 } from '@/e7ipc2-types'
 import { assertType, expectType } from './assertType'
 
@@ -22,7 +19,7 @@ type ThenArg<T> = T extends PromiseLike<infer U>
 
 describe('e7ipc2-types', () => {
   test('CommandMap', async () => {
-    type Commands = CommandMap<{
+    type Commands = DefineCommands<{
       com1: {
         opts: {
           a: number
@@ -53,10 +50,10 @@ describe('e7ipc2-types', () => {
 
     const client: Client<Commands> = { invoke: () => {} } as any
 
-    const opts1 = { type$: 'com1', a: 0, b: 'B' } as const
-    const opts2 = { type$: 'com2' } as const
-    const opts3a = { type$: 'com3', a: 0 } as const
-    const opts3b = { type$: 'com3', a: 0, b: 'B' } as const
+    const opts1 = { cmd$: 'com1', a: 0, b: 'B' } as const
+    const opts2 = { cmd$: 'com2' } as const
+    const opts3a = { cmd$: 'com3', a: 0 } as const
+    const opts3b = { cmd$: 'com3', a: 0, b: 'B' } as const
 
     const r1 = client.invoke(opts1)
     const r2 = client.invoke(opts2)
@@ -174,33 +171,45 @@ describe('e7ipc2-types', () => {
     assertType.assignable<typeof ok_obj1, ThenArg<R3a>>(false)
     assertType.notAssignable<typeof ok_obj1, ThenArg<R3a>>()
 
-    const hm: HandlerMap<Commands> = {
+    const handlers_ok = defineHandler<Commands>({
       com1: async (_, opts) => {
-        return OK(0)
+        opts.a
+        opts.b
+        return OK(2)
       },
-      com2: async (_, opts) => {
-        return OK({ x: 0 })
+      com2: async (_, _opts) => {
+        return OK({ x: 100 })
       },
       com3: async (_, opts) => {
-        return OK('test')
+        opts.a
+        opts.b
+        return OK('str')
       },
-    }
+    })
 
-    const handler: Handler<Commands> = async (_, opts) => {
-      if (opts.type$ === 'com1') {
-        return OK(0) // XXX
-      } else if (opts.type$ === 'com2') {
-        return OK({
-          x: 100,
-        })
-      } else if (opts.type$ === 'com3') {
-        return OK('test')
-      } else {
-        return ERR('unexpected command')
-      }
-    }
+    const handlers_err = defineHandler<Commands>({
+      com1: async (_, _opts) => {
+        return ERR('test')
+      },
+      com2: async (_, _opts) => {
+        return ERR(new Error())
+      },
+      com3: async (_, _opts) => {
+        return ERR(100)
+      },
+    })
 
-    const server: Server<Commands> = { handle: () => {} } as any
-    server.handle(handler)
+    const server: Server<Commands> = {
+      handle: () => {},
+      handleOnce: () => {},
+      removeHandler: () => {},
+    } as any
+
+    server.handle(handlers_ok)
+    server.handle(handlers_err)
+    server.handleOnce(handlers_ok)
+    server.handleOnce(handlers_err)
+    server.removeHandler()
+    server.removeHandler()
   })
 })

@@ -1,74 +1,92 @@
 export { Result, OK, ERR } from './result'
-import { Serializable, Result } from './result'
+import { Serializable, Result, ERR } from './result'
 
-const Tag = 'type$' as const
-type Tag = typeof Tag
+type OptsData = Record<string, Serializable | undefined>
 
-type OptsType = Record<string, Serializable | undefined>
-
-type CommandsSpec = {
-  [key: string]: { opts: OptsType; ret: Serializable }
+type CommandData = {
+  opts: OptsData
+  ret: Serializable
 }
 
-export type CommandOptions<T extends CommandsSpec, K extends keyof T> = T[K]['opts'] & { [Tag]: K }
+type CommandsSpec = Record<string, CommandData>
 
-export type CommandReturn<T extends CommandsSpec, K extends keyof T> = Promise<Result<T[K]['ret']>>
-
-type CheckOpts<ComKeys extends string, Opts, Ret> = Tag extends keyof Opts
-  ? never
-  : { [P in ComKeys]: { opts: Opts; ret: Ret } }
-
-type CheckCommandType<ComKeys extends string, Com> = Com extends {
+type ComplementOpts<CmdKey extends string, CmdData> = CmdData extends {
   opts?: Record<string, Serializable | undefined>
   ret: Serializable
 }
-  ? Com['opts'] extends Record<string, Serializable | undefined>
-    ? CheckOpts<ComKeys, Com['opts'], Com['ret']>
+  ? CmdData['opts'] extends Record<string, Serializable | undefined>
+    ? { [P in CmdKey]: CmdData }
     : // eslint-disable-next-line @typescript-eslint/ban-types
-      { [P in ComKeys]: { opts: {}; ret: Com['ret'] } }
-  : never
-
-type CommandMapUnion<T, ComKeys extends keyof T = keyof T> = ComKeys extends keyof T & string
-  ? CheckCommandType<ComKeys, T[ComKeys]>
+      { [P in CmdKey]: { opts: {}; ret: CmdData['ret'] } }
   : never
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
   ? I
   : never
 
-export type CommandMap<T> = UnionToIntersection<CommandMapUnion<T>>
-
-export interface Client<T extends CommandsSpec> {
-  invoke: <K extends keyof T>(req: T[K]['opts'] & { [Tag]: K }) => Promise<Result<T[K]['ret']>>
-}
-
-export type Handler<T extends CommandsSpec, Event = unknown, K extends keyof T = keyof T> = (
-  event: Event,
-  opts: { [P in K]: CommandOptions<T, K> }[K]
-) => { [P in K]: CommandReturn<T, K> }[K]
-
-export interface Server<T extends CommandsSpec> {
-  handle(listener: Handler<T>): void
-  handleOnce(listener: Handler<T>): void
-  removeHandler(): void
-}
-
-export type HandlerOne<T extends CommandsSpec, K extends keyof T> = (
-  _: unknown,
-  opts: CommandOptions<T, K>
-) => K extends keyof T ? CommandReturn<T, K> : never
-
-type HandlerUnion<T extends CommandsSpec, K extends keyof T = keyof T> = K extends keyof T
-  ? HandlerOne<T, K>
+type LooseCommands<Cmds, CmdName extends keyof Cmds = keyof Cmds> = CmdName extends keyof Cmds &
+  string
+  ? ComplementOpts<CmdName, Cmds[CmdName]>
   : never
 
-export type HandlerX<T extends CommandsSpec> = UnionToIntersection<HandlerUnion<T>>
+export type DefineCommands<Cmds> = UnionToIntersection<LooseCommands<Cmds>>
 
-export type Handler2<T extends CommandsSpec, K extends keyof T = keyof T> = (
-  _: unknown,
-  opts: CommandOptions<T, K>
-) => K extends keyof T ? CommandReturn<T, K> : never
+export type CommandOptions<
+  Cmds extends CommandsSpec,
+  CmdName extends keyof Cmds = keyof Cmds
+> = Cmds[CmdName]['opts'] & { cmd$: CmdName }
 
-export type HandlerMap<T extends CommandsSpec, K extends keyof T = keyof T> = {
-  [P in K]: HandlerOne<T, P>
+type CommandOptionsUnion<
+  Cmds extends CommandsSpec,
+  CmdName extends keyof Cmds = keyof Cmds
+> = CmdName extends keyof Cmds ? CommandOptions<Cmds, CmdName> : never
+
+type GetCommandRet<Cmds extends CommandsSpec, CmdName extends keyof Cmds> = Promise<
+  Result<Cmds[CmdName]['ret']>
+>
+export type CommandReturn<Cmds extends CommandsSpec, CmdName extends keyof Cmds = keyof Cmds> = {
+  [P in CmdName]: GetCommandRet<Cmds, CmdName>
+}[CmdName]
+
+type GetHandler<Cmds extends CommandsSpec, CmdName extends keyof Cmds, Event = unknown> = (
+  ev: Event,
+  opts: CommandOptions<Cmds, CmdName>
+) => CommandReturn<Cmds, CmdName>
+type HandlerMap<
+  Cmds extends CommandsSpec,
+  Event = unknown,
+  CmdName extends keyof Cmds = keyof Cmds
+> = {
+  [P in CmdName]: GetHandler<Cmds, P, Event>
+}
+
+export type Handler<Cmds extends CommandsSpec, Event = unknown> = (
+  ev: Event,
+  opts: CommandOptionsUnion<Cmds>
+) => CommandReturn<Cmds>
+
+export function defineHandler<Cmds extends CommandsSpec, Event = unknown>(
+  handlerMap: HandlerMap<Cmds, Event>
+): Handler<Cmds, Event> {
+  return async function (ev: Event, opts: CommandOptions<Cmds>) {
+    const handler = handlerMap[opts.cmd$]
+    if (handler != null) {
+      const r = await handler(ev, opts).catch(ERR)
+      return r
+    } else {
+      return ERR(`unexpected cmd$: ${opts.cmd$}`)
+    }
+  }
+}
+
+export interface Client<Cmds extends CommandsSpec> {
+  invoke<CmdName extends keyof Cmds = keyof Cmds>(
+    opts: Cmds[CmdName]['opts'] & { cmd$: CmdName }
+  ): Promise<Result<Cmds[CmdName]['ret']>>
+}
+
+export interface Server<Cmds extends CommandsSpec> {
+  handle(listener: Handler<Cmds>): void
+  handleOnce(listener: Handler<Cmds>): void
+  removeHandler(): void
 }
