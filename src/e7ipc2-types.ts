@@ -44,11 +44,31 @@ export interface Client<T extends CommandsSpec> {
 
 export type Handler<T extends CommandsSpec, Event = unknown, K extends keyof T = keyof T> = (
   event: Event,
-  cmd: T[K]['opts'] & { [Tag]: K }
-) => Promise<Result<T[K]['ret']>>
+  opts: { [P in K]: CommandOptions<T, K> }[K]
+) => { [P in K]: CommandReturn<T, K> }[K]
 
 export interface Server<T extends CommandsSpec> {
   handle(listener: Handler<T>): void
   handleOnce(listener: Handler<T>): void
   removeHandler(): void
+}
+
+export type HandlerOne<T extends CommandsSpec, K extends keyof T> = (
+  _: unknown,
+  opts: CommandOptions<T, K>
+) => K extends keyof T ? CommandReturn<T, K> : never
+
+type HandlerUnion<T extends CommandsSpec, K extends keyof T = keyof T> = K extends keyof T
+  ? HandlerOne<T, K>
+  : never
+
+export type HandlerX<T extends CommandsSpec> = UnionToIntersection<HandlerUnion<T>>
+
+export type Handler2<T extends CommandsSpec, K extends keyof T = keyof T> = (
+  _: unknown,
+  opts: CommandOptions<T, K>
+) => K extends keyof T ? CommandReturn<T, K> : never
+
+export type HandlerMap<T extends CommandsSpec, K extends keyof T = keyof T> = {
+  [P in K]: HandlerOne<T, P>
 }

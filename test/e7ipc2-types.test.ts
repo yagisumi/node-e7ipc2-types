@@ -6,7 +6,11 @@ import {
   Result,
   CommandOptions,
   CommandReturn,
-  Server,, Handler
+  Server,
+  Handler,
+  Handler2,
+  HandlerOne,
+  HandlerMap,
 } from '@/e7ipc2-types'
 import { assertType, expectType } from './assertType'
 
@@ -170,14 +174,26 @@ describe('e7ipc2-types', () => {
     assertType.assignable<typeof ok_obj1, ThenArg<R3a>>(false)
     assertType.notAssignable<typeof ok_obj1, ThenArg<R3a>>()
 
-    const handler: Handler<Commands> = async (_, cmd) => {
-      if (cmd.type$ === 'com1') {
-        return OK('xxx') // XXX
-      } else if (cmd.type$ === 'com2') {
+    const hm: HandlerMap<Commands> = {
+      com1: async (_, opts) => {
+        return OK(0)
+      },
+      com2: async (_, opts) => {
+        return OK({ x: 0 })
+      },
+      com3: async (_, opts) => {
+        return OK('test')
+      },
+    }
+
+    const handler: Handler<Commands> = async (_, opts) => {
+      if (opts.type$ === 'com1') {
+        return OK(0) // XXX
+      } else if (opts.type$ === 'com2') {
         return OK({
           x: 100,
         })
-      } else if (cmd.type$ === 'com3') {
+      } else if (opts.type$ === 'com3') {
         return OK('test')
       } else {
         return ERR('unexpected command')
