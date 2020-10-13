@@ -33,26 +33,6 @@ type ComplementCmds<Cmds, CmdName extends keyof Cmds = keyof Cmds> = CmdName ext
 
 export type DefineCommands<Cmds> = UnionToIntersection<ComplementCmds<Cmds>>
 
-// type ComplementOpts2<CmdData> = CmdData extends LooseCmdData
-//   ? CmdData['opts'] extends OptsData
-//     ? CmdData
-//     : // eslint-disable-next-line @typescript-eslint/ban-types
-//       { opts: {}; ret: CmdData['ret'] }
-//   : never
-
-// type ComplementCmds2<Cmds> = { [P in keyof Cmds]: ComplementOpts2<Cmds[P]> }
-
-// type IsNever<V, R> = V[] extends never[] ? R : never // never is empty UNION!
-
-// type ValidCmdKeys<Cmds, K extends keyof Cmds = keyof Cmds> = K extends IsNever<Cmds[K], K>
-//   ? never
-//   : K
-
-// export type DefineCommands2<Cmds, FixedCmds = ComplementCmds2<Cmds>> = Pick<
-//   FixedCmds,
-//   ValidCmdKeys<FixedCmds>
-// >
-
 export type CommandOptions<
   Cmds extends CommandsSpec,
   CmdName extends keyof Cmds = keyof Cmds
