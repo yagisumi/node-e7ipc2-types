@@ -1,4 +1,11 @@
-export type Serializable = null | string | number | boolean | SerializableObject | SerializableArray
+export type Serializable =
+  | undefined
+  | null
+  | string
+  | number
+  | boolean
+  | SerializableObject
+  | SerializableArray
 interface SerializableObject extends Record<string, Serializable> {}
 interface SerializableArray extends Array<Serializable> {}
 
@@ -93,7 +100,7 @@ export function wrapError(err: unknown): ErrorObj {
   }
 }
 
-export type OK<T extends Serializable | undefined> = {
+export type OK<T extends Serializable> = {
   ok: true
   error: undefined
   value: T
@@ -105,7 +112,7 @@ export type ERR = {
   value: undefined
 }
 
-export function OK<T extends Serializable | undefined>(value: T): OK<T> {
+export function OK<T extends Serializable>(value: T): OK<T> {
   return {
     ok: true,
     error: undefined,
@@ -121,4 +128,4 @@ export function ERR(error: unknown): ERR {
   }
 }
 
-export type Result<T extends Serializable | undefined> = OK<T> | ERR
+export type Result<T extends Serializable> = OK<T> | ERR
