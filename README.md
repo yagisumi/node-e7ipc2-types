@@ -1,6 +1,6 @@
 # @yagisumi/e7ipc2-types
 
-Welcome
+IPC interfaces
 
 [![NPM version][npm-image]][npm-url] [![install size][packagephobia-image]][packagephobia-url] [![DefinitelyTyped][dts-image]][dts-url]  
 [![Build Status][githubactions-image]][githubactions-url] [![Coverage percentage][coveralls-image]][coveralls-url]
@@ -10,14 +10,6 @@ Welcome
 
 ```sh
 $ npm i @yagisumi/e7ipc2-types
-```
-
-## Usage
-
-```ts
-import { e7ipc2-types } from '@yagisumi/e7ipc2-types';
-
-XXXXXXXXX();
 ```
 
 ## License
