@@ -174,7 +174,7 @@ describe('e7ipc2-types', () => {
     assertType.notAssignable<typeof ok_obj1, ThenArg<R3a>>()
   })
 
-  test('handlers and server', () => {
+  test('handlers and server', async () => {
     const handlers_ok = defineHandler<Commands>({
       com1: async (_, opts) => {
         opts.a
@@ -190,6 +190,27 @@ describe('e7ipc2-types', () => {
         return OK('str')
       },
     })
+
+    const r1ok = await handlers_ok({}, { cmd$: 'com1', a: 0, b: '' })
+    expect(r1ok.ok).toBe(true)
+    expect(r1ok.value).toBe(2)
+
+    const r2ok = await handlers_ok({}, { cmd$: 'com2' })
+    expect(r2ok.ok).toBe(true)
+    expect(r2ok.value).toEqual({ x: 100 })
+
+    const r3ok = await handlers_ok({}, { cmd$: 'com3', a: 0 })
+    expect(r3ok.ok).toBe(true)
+    expect(r3ok.value).toBe('str')
+
+    const r4ok = await handlers_ok({}, { cmd$: 'com4' } as any)
+    expect(r4ok.ok).toBe(false)
+    expect(r4ok.error).not.toBeUndefined()
+    if (r4ok.error) {
+      expect(r4ok.error.type$).toBe('Message')
+      expect(r4ok.error.message).toBe('unexpected cmd$: com4')
+    }
+    expect(r4ok.error)
 
     const handlers_err = defineHandler<Commands>({
       com1: async (_, _opts) => {
