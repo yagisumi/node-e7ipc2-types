@@ -7,7 +7,7 @@ import {
   CommandOptions,
   CommandReturn,
   Server,
-  defineHandler,
+  defineHandlers,
 } from '@/e7ipc2-types'
 import { assertType, expectType } from './assertType'
 
@@ -175,7 +175,7 @@ describe('e7ipc2-types', () => {
   })
 
   test('handlers and server', async () => {
-    const handlers_ok = defineHandler<Commands>({
+    const handlers_ok = defineHandlers<Commands>({
       com1: async (_, opts) => {
         opts.a
         opts.b
@@ -206,12 +206,12 @@ describe('e7ipc2-types', () => {
     const r4ok = await handlers_ok({}, { $cmd: 'com4' } as any)
     expect(r4ok.ok).toBe(false)
     expect(r4ok.error).not.toBeUndefined()
-    if (r4ok.error) {
+    if (!r4ok.ok) {
       expect(r4ok.error.message).toBe('unexpected $cmd: com4')
     }
     expect(r4ok.error)
 
-    const handlers_err = defineHandler<Commands>({
+    const handlers_err = defineHandlers<Commands>({
       com1: async (_, _opts) => {
         return ERR('test')
       },

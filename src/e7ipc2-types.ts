@@ -13,7 +13,7 @@ type LooseCmdData = {
   ret: unknown
 }
 
-type CommandsSpec = Record<string, CommandData>
+export type CommandsSpec = Record<string, CommandData>
 
 type ComplementOpts<CmdKey extends string, CmdData> = CmdData extends LooseCmdData
   ? CmdData['opts'] extends OptsData
@@ -46,28 +46,35 @@ export type CommandReturn<Cmds extends CommandsSpec, CmdName extends keyof Cmds 
   [P in CmdName]: Promise<Result<Cmds[CmdName]['ret']>>
 }[CmdName]
 
-type GetHandler<Cmds extends CommandsSpec, CmdName extends keyof Cmds, Event = unknown> = (
+export type CmdHandler<Cmds extends CommandsSpec, CmdName extends keyof Cmds, Event = unknown> = (
   ev: Event,
   opts: CommandOptions<Cmds, CmdName>
 ) => CommandReturn<Cmds, CmdName>
-type HandlerMap<
+
+export type Handlers<
   Cmds extends CommandsSpec,
-  Event = unknown,
+  Event = any,
   CmdName extends keyof Cmds = keyof Cmds
 > = {
-  [P in CmdName]: GetHandler<Cmds, P, Event>
+  [P in CmdName]: CmdHandler<Cmds, P, Event>
 }
 
-export type Handler<Cmds extends CommandsSpec, Event = unknown> = (
+export type Listener<Cmds extends CommandsSpec, Event = any> = (
   ev: Event,
   opts: CommandOptionsUnion<Cmds>
 ) => CommandReturn<Cmds>
 
-export function defineHandler<Cmds extends CommandsSpec, Event = unknown>(
-  handlerMap: HandlerMap<Cmds, Event>
-): Handler<Cmds, Event> {
+/**
+ * ```ts
+ * defineHandler<Cmds>(handlerMap: HandlerMap<Cmds>): Handler<Cmds>
+ * ```
+ * @param handlers
+ */
+export function defineHandlers<Cmds extends CommandsSpec, Event = any>(
+  handlers: Handlers<Cmds, Event>
+): Listener<Cmds, Event> {
   return async function (ev: Event, opts: CommandOptions<Cmds>) {
-    const handler = handlerMap[opts.$cmd]
+    const handler = handlers[opts.$cmd]
     if (handler != null) {
       const r = await handler(ev, opts).catch(ERR)
       return r
@@ -84,7 +91,7 @@ export interface Client<Cmds extends CommandsSpec> {
 }
 
 export interface Server<Cmds extends CommandsSpec> {
-  handle(listener: Handler<Cmds>): void
-  handleOnce(listener: Handler<Cmds>): void
+  handle(listener: Listener<Cmds>): void
+  handleOnce(listener: Listener<Cmds>): void
   removeHandler(): void
 }
