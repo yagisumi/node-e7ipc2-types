@@ -36,7 +36,7 @@ export type DefineCommands<Cmds> = UnionToIntersection<ComplementCmds<Cmds>>
 export type CommandOptions<
   Cmds extends CommandsSpec,
   CmdName extends keyof Cmds = keyof Cmds
-> = Cmds[CmdName]['opts'] & { cmd$: CmdName }
+> = Cmds[CmdName]['opts'] & { $cmd: CmdName }
 
 type CommandOptionsUnion<Cmds extends CommandsSpec> = {
   [P in keyof Cmds]: CommandOptions<Cmds, P>
@@ -67,19 +67,19 @@ export function defineHandler<Cmds extends CommandsSpec, Event = unknown>(
   handlerMap: HandlerMap<Cmds, Event>
 ): Handler<Cmds, Event> {
   return async function (ev: Event, opts: CommandOptions<Cmds>) {
-    const handler = handlerMap[opts.cmd$]
+    const handler = handlerMap[opts.$cmd]
     if (handler != null) {
       const r = await handler(ev, opts).catch(ERR)
       return r
     } else {
-      return ERR(`unexpected cmd$: ${opts.cmd$}`)
+      return ERR(`unexpected $cmd: ${opts.$cmd}`)
     }
   }
 }
 
 export interface Client<Cmds extends CommandsSpec> {
   invoke<CmdName extends keyof Cmds = keyof Cmds>(
-    opts: Cmds[CmdName]['opts'] & { cmd$: CmdName }
+    opts: Cmds[CmdName]['opts'] & { $cmd: CmdName }
   ): Promise<Result<Cmds[CmdName]['ret']>>
 }
 

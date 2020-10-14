@@ -52,10 +52,10 @@ describe('e7ipc2-types', () => {
   test('client.invoke(), options and return types', async () => {
     const client: Client<Commands> = { invoke: () => {} } as any
 
-    const opts1 = { cmd$: 'com1', a: 0, b: 'B' } as const
-    const opts2 = { cmd$: 'com2' } as const
-    const opts3a = { cmd$: 'com3', a: 0 } as const
-    const opts3b = { cmd$: 'com3', a: 0, b: 'B' } as const
+    const opts1 = { $cmd: 'com1', a: 0, b: 'B' } as const
+    const opts2 = { $cmd: 'com2' } as const
+    const opts3a = { $cmd: 'com3', a: 0 } as const
+    const opts3b = { $cmd: 'com3', a: 0, b: 'B' } as const
 
     const r1 = client.invoke(opts1)
     const r2 = client.invoke(opts2)
@@ -191,24 +191,24 @@ describe('e7ipc2-types', () => {
       },
     })
 
-    const r1ok = await handlers_ok({}, { cmd$: 'com1', a: 0, b: '' })
+    const r1ok = await handlers_ok({}, { $cmd: 'com1', a: 0, b: '' })
     expect(r1ok.ok).toBe(true)
     expect(r1ok.value).toBe(2)
 
-    const r2ok = await handlers_ok({}, { cmd$: 'com2' })
+    const r2ok = await handlers_ok({}, { $cmd: 'com2' })
     expect(r2ok.ok).toBe(true)
     expect(r2ok.value).toEqual({ x: 100 })
 
-    const r3ok = await handlers_ok({}, { cmd$: 'com3', a: 0 })
+    const r3ok = await handlers_ok({}, { $cmd: 'com3', a: 0 })
     expect(r3ok.ok).toBe(true)
     expect(r3ok.value).toBe('str')
 
-    const r4ok = await handlers_ok({}, { cmd$: 'com4' } as any)
+    const r4ok = await handlers_ok({}, { $cmd: 'com4' } as any)
     expect(r4ok.ok).toBe(false)
     expect(r4ok.error).not.toBeUndefined()
     if (r4ok.error) {
-      expect(r4ok.error.type$).toBe('Message')
-      expect(r4ok.error.message).toBe('unexpected cmd$: com4')
+      expect(r4ok.error.$type).toBe('Message')
+      expect(r4ok.error.message).toBe('unexpected $cmd: com4')
     }
     expect(r4ok.error)
 
