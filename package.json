@@ -1,12 +1,11 @@
 {
   "name": "@yagisumi/e7ipc2-types",
   "version": "0.1.0",
-  "description": "TODO",
+  "description": "IPC interfaces",
   "keywords": [],
   "engines": {
     "node": ">= 10.0.0"
   },
-  "private": true,
   "main": "lib/e7ipc2-types",
   "module": "lib/e7ipc2-types.mjs",
   "types": "lib/e7ipc2-types.d.ts",
