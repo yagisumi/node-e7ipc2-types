@@ -207,7 +207,6 @@ describe('e7ipc2-types', () => {
     expect(r4ok.ok).toBe(false)
     expect(r4ok.error).not.toBeUndefined()
     if (r4ok.error) {
-      expect(r4ok.error.$type).toBe('Message')
       expect(r4ok.error.message).toBe('unexpected $cmd: com4')
     }
     expect(r4ok.error)

@@ -1,67 +1,7 @@
-export type Serializable =
-  | undefined
-  | null
-  | string
-  | number
-  | boolean
-  | SerializableObject
-  | SerializableArray
-interface SerializableObject extends Record<string, Serializable> {}
-interface SerializableArray extends Array<Serializable> {}
-
-const getCircularReplacer = () => {
-  const seen = new WeakSet()
-  return (key: string, value: unknown) => {
-    if (typeof value === 'object' && value !== null) {
-      if (seen.has(value)) {
-        return
-      }
-      seen.add(value)
-    }
-    return value
-  }
-}
-
-export function ensureSerializable(obj: unknown) {
-  try {
-    return JSON.parse(JSON.stringify(obj, getCircularReplacer()))
-  } catch (e) {
-    return {}
-  }
-}
-
-type MessageTypeError = {
-  $type: 'Message'
-  name: string
-  message: string
-}
-
-type ErrorTypeError = {
-  $type: 'Error'
-  name: string
-  message: string
-  stack?: string
-}
-
-type UnknownTypeError = {
-  $type: 'Unknown'
-  name: string
-  message: string
-  value?: Serializable
-}
-
-type ErrorLikeTypeError = {
-  $type: 'ErrorLike'
-  name: string
-  message: string
-}
-
 type ErrorLike = {
   name: string
   message: string
 }
-
-type ErrorObj = MessageTypeError | ErrorTypeError | UnknownTypeError | ErrorLikeTypeError
 
 function isErrorLike(obj: any): obj is ErrorLike {
   return (
@@ -74,33 +14,21 @@ function isErrorLike(obj: any): obj is ErrorLike {
   )
 }
 
-export function wrapError(err: unknown): ErrorObj {
+export function wrapError(err: unknown): Error {
   if (typeof err === 'string') {
-    return {
-      $type: 'Message',
-      name: 'Error',
-      message: err,
-    }
+    return new Error(err)
   } else if (err instanceof Error) {
-    return {
-      $type: 'Error',
-      name: err.name,
-      message: err.message,
-      stack: err.stack,
-    }
+    return err
   } else if (isErrorLike(err)) {
-    return { $type: 'ErrorLike', ...ensureSerializable(err) }
+    const e = new Error(err.message)
+    e.name = err.name
+    return e
   } else {
-    return {
-      $type: 'Unknown',
-      name: 'Error',
-      message: 'unexpected error',
-      value: ensureSerializable(err),
-    }
+    return new Error('unexpected error')
   }
 }
 
-export type OK<T extends Serializable> = {
+export type OK<T> = {
   ok: true
   error: undefined
   value: T
@@ -108,15 +36,15 @@ export type OK<T extends Serializable> = {
 
 export type ERR = {
   ok: false
-  error: ErrorObj
+  error: Error
   value: undefined
 }
 
-export function OK<T extends Serializable>(value: T): OK<T> {
+export function OK<T>(value: T): OK<T> {
   return {
     ok: true,
     error: undefined,
-    value: value,
+    value,
   }
 }
 
@@ -128,4 +56,4 @@ export function ERR(error: unknown): ERR {
   }
 }
 
-export type Result<T extends Serializable> = OK<T> | ERR
+export type Result<T> = OK<T> | ERR

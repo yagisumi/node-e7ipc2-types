@@ -1,16 +1,16 @@
-export { Result, OK, ERR, ensureSerializable } from './result'
-import { Serializable, Result, ERR } from './result'
+export { Result, OK, ERR } from './result'
+import { Result, ERR } from './result'
 
-type OptsData = Record<string, Serializable | undefined>
+type OptsData = Record<string, unknown>
 
 type CommandData = {
   opts: OptsData
-  ret: Serializable
+  ret: unknown
 }
 
 type LooseCmdData = {
   opts?: OptsData
-  ret: Serializable
+  ret: unknown
 }
 
 type CommandsSpec = Record<string, CommandData>

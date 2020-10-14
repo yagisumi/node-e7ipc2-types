@@ -1,4 +1,4 @@
-import { ERR, OK, ensureSerializable } from '@/result'
+import { ERR, OK } from '@/result'
 
 describe('Result', () => {
   test('OK', () => {
@@ -7,45 +7,32 @@ describe('Result', () => {
   })
 
   test('ERR', () => {
-    expect(ERR('string')).toEqual({
-      ok: false,
-      value: undefined,
-      error: { $type: 'Message', name: 'Error', message: 'string' },
-    })
+    const err1 = ERR('string')
+    expect(err1.ok).toBe(false)
+    expect(err1.value).toBeUndefined()
+    expect(err1.error).toBeInstanceOf(Error)
+    expect(err1.error.name).toBe('Error')
+    expect(err1.error.message).toBe('string')
 
-    expect(ERR(1)).toEqual({
-      ok: false,
-      value: undefined,
-      error: { $type: 'Unknown', name: 'Error', message: 'unexpected error', value: 1 },
-    })
+    const err2 = ERR(1)
+    expect(err2.ok).toBe(false)
+    expect(err2.value).toBeUndefined()
+    expect(err2.error).toBeInstanceOf(Error)
+    expect(err2.error.name).toBe('Error')
+    expect(err2.error.message).toBe('unexpected error')
 
-    const err = new Error()
-    expect(ERR(err)).toEqual({
-      ok: false,
-      value: undefined,
-      error: { $type: 'Error', name: 'Error', message: '', stack: err.stack },
-    })
+    const err3 = ERR(new Error())
+    expect(err3.ok).toBe(false)
+    expect(err3.value).toBeUndefined()
+    expect(err3.error).toBeInstanceOf(Error)
+    expect(err3.error.name).toBe('Error')
+    expect(err3.error.message).toBe('')
 
-    expect(ERR({ name: 'err', message: 'msg', foo: 100 })).toEqual({
-      ok: false,
-      value: undefined,
-      error: { $type: 'ErrorLike', name: 'err', message: 'msg', foo: 100 },
-    })
-  })
-
-  test('serialize', () => {
-    const circularReference: any = { otherData: 123 }
-    circularReference.myself = circularReference
-
-    expect(() => {
-      JSON.stringify(circularReference)
-    }).toThrowError()
-
-    expect(() => {
-      ensureSerializable(circularReference)
-    }).not.toThrowError()
-
-    const v = ensureSerializable(circularReference)
-    expect(v).toEqual({ otherData: 123 })
+    const err4 = ERR({ name: 'err', message: 'msg', foo: 100 })
+    expect(err4.ok).toBe(false)
+    expect(err4.value).toBeUndefined()
+    expect(err4.error).toBeInstanceOf(Error)
+    expect(err4.error.name).toBe('err')
+    expect(err4.error.message).toBe('msg')
   })
 })
