@@ -1,4 +1,4 @@
-import { ERR, OK } from '@/result'
+import { ERR, OK, ensureSerializable } from '@/result'
 
 describe('Result', () => {
   test('OK', () => {
@@ -31,5 +31,21 @@ describe('Result', () => {
       value: undefined,
       error: { $type: 'ErrorLike', name: 'err', message: 'msg', foo: 100 },
     })
+  })
+
+  test('serialize', () => {
+    const circularReference: any = { otherData: 123 }
+    circularReference.myself = circularReference
+
+    expect(() => {
+      JSON.stringify(circularReference)
+    }).toThrowError()
+
+    expect(() => {
+      ensureSerializable(circularReference)
+    }).not.toThrowError()
+
+    const v = ensureSerializable(circularReference)
+    expect(v).toEqual({ otherData: 123 })
   })
 })

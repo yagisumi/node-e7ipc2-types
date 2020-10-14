@@ -1,4 +1,4 @@
-export { Result, OK, ERR } from './result'
+export { Result, OK, ERR, ensureSerializable } from './result'
 import { Serializable, Result, ERR } from './result'
 
 type OptsData = Record<string, Serializable | undefined>

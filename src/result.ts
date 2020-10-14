@@ -2,9 +2,22 @@ export type Serializable = null | string | number | boolean | SerializableObject
 interface SerializableObject extends Record<string, Serializable> {}
 interface SerializableArray extends Array<Serializable> {}
 
-function ensureSerializable(obj: unknown) {
+const getCircularReplacer = () => {
+  const seen = new WeakSet()
+  return (key: string, value: unknown) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return
+      }
+      seen.add(value)
+    }
+    return value
+  }
+}
+
+export function ensureSerializable(obj: unknown) {
   try {
-    return JSON.parse(JSON.stringify(obj))
+    return JSON.parse(JSON.stringify(obj, getCircularReplacer()))
   } catch (e) {
     return {}
   }
@@ -69,7 +82,7 @@ export function wrapError(err: unknown): ErrorObj {
       stack: err.stack,
     }
   } else if (isErrorLike(err)) {
-    return { $type: 'ErrorLike', ...err }
+    return { $type: 'ErrorLike', ...ensureSerializable(err) }
   } else {
     return {
       $type: 'Unknown',
@@ -80,7 +93,7 @@ export function wrapError(err: unknown): ErrorObj {
   }
 }
 
-export type OK<T> = {
+export type OK<T extends Serializable | undefined> = {
   ok: true
   error: undefined
   value: T
@@ -92,11 +105,11 @@ export type ERR = {
   value: undefined
 }
 
-export function OK<T>(value: T): OK<T> {
+export function OK<T extends Serializable | undefined>(value: T): OK<T> {
   return {
     ok: true,
     error: undefined,
-    value,
+    value: value,
   }
 }
 
@@ -108,4 +121,4 @@ export function ERR(error: unknown): ERR {
   }
 }
 
-export type Result<T> = OK<T> | ERR
+export type Result<T extends Serializable | undefined> = OK<T> | ERR
