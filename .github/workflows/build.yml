@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: "${{ matrix.os }} / node-v${{ matrix.node }}"
+    name: ${{ matrix.os }} / node-v${{ matrix.node }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
