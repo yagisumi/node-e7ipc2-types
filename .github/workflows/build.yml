@@ -5,11 +5,12 @@ on:
 
 jobs:
   build:
-    name: Node.js ${{ matrix.node }}
+    name: ${{ matrix.os }} node-v${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         node: [10, 12, 14]
     steps:
       - uses: actions/checkout@v2
@@ -21,10 +22,10 @@ jobs:
         run: |
           node -v
           npm -v
-      - run: npm install
+      - run: npm ci
       - run: npm test
       - name: Coveralls
-        if: matrix.node == 14
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 14
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.github_token }}
