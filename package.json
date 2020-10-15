@@ -7,7 +7,6 @@
     "node": ">= 10.0.0"
   },
   "main": "lib/e7ipc2-types",
-  "module": "lib/e7ipc2-types.mjs",
   "types": "lib/e7ipc2-types.d.ts",
   "unpkg": "umd/e7ipc2-types.js",
   "scripts": {
@@ -17,7 +16,6 @@
     "build": "run-s clean build:*",
     "clean": "rimraf lib coverage umd *.tgz .rpt2_cache .nyc_output",
     "build:cjs": "rollup -c config/rollup.config.js -f cjs -o ./lib/e7ipc2-types.js",
-    "build:mjs": "rollup -c config/rollup.config.js -f es -o ./lib/e7ipc2-types.mjs",
     "build:umd": "rollup -c config/rollup.config.umd.js",
     "build:d_ts": "tsc -p src -d --emitDeclarationOnly --outDir ./lib",
     "prettier:check": "prettier --check \"**/*.{ts,js,json}\"",
