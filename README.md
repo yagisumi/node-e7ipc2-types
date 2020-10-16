@@ -30,5 +30,5 @@ $ npm i @yagisumi/e7ipc2-types
 [coveralls-url]: https://coveralls.io/github/yagisumi/node-e7ipc2-types?branch=master
 [dts-image]: https://img.shields.io/badge/DefinitelyTyped-.d.ts-blue.svg?style=flat-square
 [dts-url]: http://definitelytyped.org
-[typescript-image]: https://img.shields.io/badge/-TypeScript-007ACC?logo=typescript&labelColor=555&style=flat-square
+[typescript-image]: https://img.shields.io/badge/TypeScript-.d.ts-555?logo=typescript&labelColor=007ACC&style=flat-square
 [typescript-url]: https://www.typescriptlang.org/
