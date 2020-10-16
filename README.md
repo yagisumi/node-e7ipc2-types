@@ -2,7 +2,7 @@
 
 IPC interfaces
 
-[![NPM version][npm-image]][npm-url] [![install size][packagephobia-image]][packagephobia-url] [![DefinitelyTyped][dts-image]][dts-url]  
+[![NPM version][npm-image]][npm-url] [![install size][packagephobia-image]][packagephobia-url] [![TypeScript][typescript-image]][typescript-url]  
 [![Build Status][githubactions-image]][githubactions-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 <!--- [![Build Status][travis-image]][travis-url] [![Build Status][appveyor-image]][appveyor-url] -->
 
@@ -30,3 +30,5 @@ $ npm i @yagisumi/e7ipc2-types
 [coveralls-url]: https://coveralls.io/github/yagisumi/node-e7ipc2-types?branch=master
 [dts-image]: https://img.shields.io/badge/DefinitelyTyped-.d.ts-blue.svg?style=flat-square
 [dts-url]: http://definitelytyped.org
+[typescript-image]: https://img.shields.io/badge/-TypeScript-007ACC?logo=typescript&labelColor=007ACC&style=flat-square
+[typescript-url]: https://www.typescriptlang.org/
